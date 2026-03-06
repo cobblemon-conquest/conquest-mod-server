@@ -13,6 +13,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -34,14 +36,17 @@ jobs:
 
       - name: Get version
         id: get_version
-        run: echo "VERSION=$(./gradlew -q printVersion)" >> $GITHUB_ENV
+        run: |
+          # Read from gradle.properties
+          VERSION=$(grep '^mod_version=' gradle.properties | cut -d'=' -f2)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
         if: github.ref == 'refs/heads/main' && !contains(env.VERSION, 'SNAPSHOT')
         with:
-          tag_name: "v${{ env.VERSION }}"
-          name: "v${{ env.VERSION }}"
-          files: build/libs/linking-mod-*.jar
+          tag_name: "v${{ steps.get_version.outputs.version }}"
+          name: "v${{ steps.get_version.outputs.version }}"
+          files: build/libs/conquest-mod-*.jar
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
