@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "id": "conquest_mod",
+  "version": "${version}",
+  "name": "conquest_mod",
+  "description": "Cobblemon Conquest Server mod",
+  "authors": [
+    "albercl"
+  ],
+  "contact": {
+    "homepage": "https://fabricmc.net/",
+    "sources": "https://github.com/FabricMC/fabric-example-mod"
+  },
+  "license": "CC0-1.0",
+  "icon": "assets/conquest_mod/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "dev.albercl.conquestmod.fabric.ConquestModFabric"
+    ],
+    "client": [
+      "dev.albercl.conquestmod.fabric.client.ConquestModFabricClient"
+    ]
+  },
+  "mixins": [
+    "conquest_mod.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.18.4",
+    "minecraft": "~1.21.1",
+    "java": ">=21",
+    "architectury": ">=13.0.8",
+    "fabric-api": "*",
+    "cobblemon": "*"
+  },
+  "suggests": {
+    "another-mod": "*"
+  }
+}

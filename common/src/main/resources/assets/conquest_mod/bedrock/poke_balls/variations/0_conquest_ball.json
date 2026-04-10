@@ -1,0 +1,13 @@
+{
+  "pokeball": "conquest_mod:conquest_ball",
+  "order": 0,
+  "variations": [
+    {
+      "aspects": [],
+      "poser": "cobblemon:poke_ball",
+      "model": "cobblemon:poke_ball.geo",
+      "texture": "conquest_mod:textures/poke_balls/conquest_ball.png",
+      "layers": []
+    }
+  ]
+}
