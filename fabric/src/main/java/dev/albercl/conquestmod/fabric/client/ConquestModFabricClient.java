@@ -1,4 +1,4 @@
-package dev.albercl.conquestmod.common.fabric.client;
+package dev.albercl.conquestmod.fabric.client;
 
 import net.fabricmc.api.ClientModInitializer;
 

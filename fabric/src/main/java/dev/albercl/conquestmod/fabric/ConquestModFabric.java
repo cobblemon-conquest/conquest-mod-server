@@ -1,4 +1,4 @@
-package dev.albercl.conquestmod.common.fabric;
+package dev.albercl.conquestmod.fabric;
 
 import net.fabricmc.api.ModInitializer;
 
