@@ -1,4 +1,4 @@
-package dev.albercl.conquestmod.common.tournament;
+package dev.albercl.conquestmodserver.common.tournament;
 
 import com.cobblemon.mod.common.Cobblemon;
 import com.cobblemon.mod.common.api.moves.Move;

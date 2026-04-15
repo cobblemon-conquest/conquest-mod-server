@@ -1,4 +1,4 @@
-package dev.albercl.conquestmod.common.tournament;
+package dev.albercl.conquestmodserver.common.tournament;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
