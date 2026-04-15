@@ -21,7 +21,7 @@
     "client": []
   },
   "mixins": [
-    "conquest_mod.mixins.json"
+    "conquest_mod_server.mixins.json"
   ],
   "depends": {
     "fabricloader": ">=0.18.4",

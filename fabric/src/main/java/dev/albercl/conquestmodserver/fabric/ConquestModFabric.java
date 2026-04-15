@@ -1,8 +1,7 @@
-package dev.albercl.conquestmod.fabric;
+package dev.albercl.conquestmodserver.fabric;
 
+import dev.albercl.conquestmodserver.fabric.command.ConquestFabricCommands;
 import net.fabricmc.api.ModInitializer;
-
-import dev.albercl.conquestmod.fabric.command.ConquestFabricCommands;
 
 public final class ConquestModFabric implements ModInitializer {
     @Override

@@ -1,6 +1,6 @@
-package dev.albercl.conquestmod.fabric.command;
+package dev.albercl.conquestmodserver.fabric.command;
 
-import dev.albercl.conquestmod.common.tournament.TournamentCommands;
+import dev.albercl.conquestmodserver.common.tournament.TournamentCommands;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 
 public final class ConquestFabricCommands {
