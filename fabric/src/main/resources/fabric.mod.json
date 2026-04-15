@@ -18,9 +18,7 @@
     "main": [
       "dev.albercl.conquestmod.fabric.ConquestModFabric"
     ],
-    "client": [
-      "dev.albercl.conquestmod.fabric.client.ConquestModFabricClient"
-    ]
+    "client": []
   },
   "mixins": [
     "conquest_mod.mixins.json"

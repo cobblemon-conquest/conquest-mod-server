@@ -74,7 +74,7 @@ jobs:
         with:
           name: fabric-release-jar
           path: |
-            fabric/build/libs/conquest_mod-fabric-*.jar
+            fabric/build/libs/conquest_mod_server-fabric-*.jar
             !fabric/build/libs/*-dev-shadow.jar
             !fabric/build/libs/*-sources.jar
           if-no-files-found: error
