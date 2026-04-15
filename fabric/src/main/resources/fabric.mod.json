@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "id": "conquest_mod",
+  "id": "conquest_mod_server",
   "version": "${version}",
-  "name": "conquest_mod",
+  "name": "conquest_mod_server",
   "description": "Cobblemon Conquest Server mod",
   "authors": [
     "albercl"
@@ -16,7 +16,7 @@
   "environment": "*",
   "entrypoints": {
     "main": [
-      "dev.albercl.conquestmod.fabric.ConquestModFabric"
+      "dev.albercl.conquestmodserver.fabric.ConquestModFabric"
     ],
     "client": []
   },
