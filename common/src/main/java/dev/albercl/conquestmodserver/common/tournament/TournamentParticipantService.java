@@ -21,6 +21,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -122,6 +123,10 @@ public final class TournamentParticipantService {
     }
 
     public static synchronized CheckResult check(ServerPlayer player, MinecraftServer server) {
+        return check(player, server, -1);
+    }
+
+    public static synchronized CheckResult check(ServerPlayer player, MinecraftServer server, int requiredMatches) {
         ensureLoaded(server);
 
         String participantKey = PARTICIPANT_NAME_BY_PLAYER.get(player.getUUID());
@@ -136,9 +141,25 @@ public final class TournamentParticipantService {
             throw new IllegalStateException("No se encontro el registro del participante asociado a este jugador.");
         }
 
+        int registeredPokemon = record.snapshot().occupiedSlots();
+        int effectiveRequiredMatches = requiredMatches <= 0 ? registeredPokemon : requiredMatches;
+        if (effectiveRequiredMatches > registeredPokemon) {
+            throw new IllegalArgumentException(
+                "No se puede requerir " + effectiveRequiredMatches + " coincidencias: el participante solo tiene "
+                    + registeredPokemon + " Pokemon registrados."
+            );
+        }
+
         CompetitiveTeamSnapshot currentSnapshot = createSnapshot(player);
-        List<String> differences = compare(record.snapshot(), currentSnapshot);
-        return new CheckResult(record.displayName(), differences.isEmpty(), differences);
+        CheckComparison comparison = compare(record.snapshot(), currentSnapshot, effectiveRequiredMatches);
+        return new CheckResult(
+            record.displayName(),
+            comparison.matches(),
+            comparison.matchedPokemon(),
+            comparison.requiredMatches(),
+            registeredPokemon,
+            comparison.differences()
+        );
     }
 
     public static synchronized Optional<String> getParticipantNameForPlayer(UUID playerUuid) {
@@ -435,13 +456,31 @@ public final class TournamentParticipantService {
         return key == null ? "minecraft:air" : key.toString();
     }
 
-    private static List<String> compare(CompetitiveTeamSnapshot expected, CompetitiveTeamSnapshot current) {
+    private static CheckComparison compare(CompetitiveTeamSnapshot expected, CompetitiveTeamSnapshot current, int requiredMatches) {
+        int matchedPokemon = countMatchedPokemon(expected, current);
+
+        if (requiredMatches < expected.occupiedSlots()) {
+            if (matchedPokemon >= requiredMatches) {
+                return new CheckComparison(true, matchedPokemon, requiredMatches, List.of());
+            }
+
+            List<String> differences = new ArrayList<>();
+            differences.add(
+                "Coincidencias insuficientes: se requieren al menos " + requiredMatches
+                    + " Pokemon registrados y solo coinciden " + matchedPokemon + "."
+            );
+            differences.add(
+                "Pokemon registrados: " + expected.occupiedSlots() + ", Pokemon actuales: " + current.occupiedSlots() + "."
+            );
+            return new CheckComparison(false, matchedPokemon, requiredMatches, differences);
+        }
+
         List<String> differences = new ArrayList<>();
         if (expected.occupiedSlots() != current.occupiedSlots()) {
             differences.add(
                 "Cantidad de Pokemon distinta: esperado " + expected.occupiedSlots() + ", actual " + current.occupiedSlots() + "."
             );
-            return differences;
+            return new CheckComparison(false, matchedPokemon, requiredMatches, differences);
         }
 
         List<PokemonSnapshot> expectedPokemon = extractPokemonSnapshots(expected);
@@ -454,7 +493,27 @@ public final class TournamentParticipantService {
             comparePokemon(expectedPokemon.get(i), currentPokemon.get(i), i + 1, differences);
         }
 
-        return differences;
+        return new CheckComparison(differences.isEmpty(), matchedPokemon, requiredMatches, differences);
+    }
+
+    private static int countMatchedPokemon(CompetitiveTeamSnapshot expected, CompetitiveTeamSnapshot current) {
+        Map<String, Integer> expectedCounts = pokemonCountByKey(expected);
+        Map<String, Integer> currentCounts = pokemonCountByKey(current);
+
+        int matches = 0;
+        for (Map.Entry<String, Integer> entry : expectedCounts.entrySet()) {
+            int currentCount = currentCounts.getOrDefault(entry.getKey(), 0);
+            matches += Math.min(entry.getValue(), currentCount);
+        }
+        return matches;
+    }
+
+    private static Map<String, Integer> pokemonCountByKey(CompetitiveTeamSnapshot snapshot) {
+        Map<String, Integer> counts = new HashMap<>();
+        for (PokemonSnapshot pokemon : extractPokemonSnapshots(snapshot)) {
+            counts.merge(pokemonComparisonKey(pokemon), 1, Integer::sum);
+        }
+        return counts;
     }
 
     private static void comparePokemon(PokemonSnapshot expected, PokemonSnapshot current, int slotNumber, List<String> differences) {
@@ -624,10 +683,20 @@ public final class TournamentParticipantService {
     ) {
     }
 
+    private record CheckComparison(boolean matches, int matchedPokemon, int requiredMatches, List<String> differences) {
+    }
+
     public record RegisterResult(String participantName, int teamSize) {
     }
 
-    public record CheckResult(String participantName, boolean matches, List<String> differences) {
+    public record CheckResult(
+        String participantName,
+        boolean matches,
+        int matchedPokemon,
+        int requiredMatches,
+        int registeredPokemon,
+        List<String> differences
+    ) {
     }
 
     public record ClearResult(int removedParticipants) {

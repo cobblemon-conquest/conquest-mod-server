@@ -1,9 +1,9 @@
 package dev.albercl.conquestmodserver.common.tournament;
 
 import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
-import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -14,7 +14,6 @@ import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.network.chat.Style;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 
@@ -72,6 +71,10 @@ public final class TournamentCommands {
                                     Commands.argument("username", StringArgumentType.word())
                                         .suggests(ONLINE_PLAYER_SUGGESTIONS)
                                         .executes(TournamentCommands::checkParticipant)
+                                        .then(
+                                            Commands.argument("required", IntegerArgumentType.integer(1, 6))
+                                                .executes(TournamentCommands::checkParticipant)
+                                        )
                                 )
                         )
                         .then(
@@ -138,6 +141,7 @@ public final class TournamentCommands {
         String username = StringArgumentType.getString(context, "username");
         MinecraftServer server = context.getSource().getServer();
         ServerPlayer player = server.getPlayerList().getPlayerByName(username);
+        Integer requiredMatches = getOptionalRequiredMatches(context);
 
         if (player == null) {
             context.getSource().sendFailure(Component.literal("El jugador '" + username + "' no esta conectado."));
@@ -145,10 +149,17 @@ public final class TournamentCommands {
         }
 
         try {
-            TournamentParticipantService.CheckResult result = TournamentParticipantService.check(player, server);
+            TournamentParticipantService.CheckResult result = requiredMatches == null
+                ? TournamentParticipantService.check(player, server)
+                : TournamentParticipantService.check(player, server, requiredMatches);
             if (result.matches()) {
+                int registeredPokemon = result.registeredPokemon();
                 context.getSource().sendSuccess(
-                    () -> Component.literal("Equipo competitivo coincide para '" + result.participantName() + "'"),
+                    () -> Component.literal(
+                        "Equipo competitivo coincide para '" + result.participantName() + "'"
+                            + " (" + result.matchedPokemon() + "/" + registeredPokemon + " Pokemon registrados coinciden"
+                            + ", minimo requerido: " + result.requiredMatches() + ")."
+                    ),
                     false
                 );
                 return 1;
@@ -163,9 +174,17 @@ public final class TournamentCommands {
                 context.getSource().sendFailure(Component.literal("- " + difference));
             }
             return 0;
-        } catch (IllegalStateException exception) {
+        } catch (IllegalArgumentException | IllegalStateException exception) {
             context.getSource().sendFailure(Component.literal(exception.getMessage()));
             return 0;
+        }
+    }
+
+    private static Integer getOptionalRequiredMatches(CommandContext<CommandSourceStack> context) {
+        try {
+            return IntegerArgumentType.getInteger(context, "required");
+        } catch (IllegalArgumentException exception) {
+            return null;
         }
     }
 
