@@ -7,9 +7,9 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
-import com.mojang.brigadier.suggestion.SuggestionProvider;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.nbt.CompoundTag;
@@ -18,13 +18,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 
 public final class RecoveryCommands {
-    private static final SuggestionProvider<CommandSourceStack> ONLINE_PLAYER_SUGGESTIONS = (context, builder) -> {
-        for (String playerName : context.getSource().getServer().getPlayerNames()) {
-            builder.suggest(playerName);
-        }
-        return builder.buildFuture();
-    };
-
     private RecoveryCommands() {
     }
 
@@ -36,7 +29,12 @@ public final class RecoveryCommands {
                         .requires(source -> source.hasPermission(2))
                         .then(
                             Commands.argument("username", StringArgumentType.word())
-                                .suggests(ONLINE_PLAYER_SUGGESTIONS)
+                                .suggests((context, builder) -> {
+                                    for (String playerName : context.getSource().getServer().getPlayerNames()) {
+                                        builder.suggest(playerName);
+                                    }
+                                    return builder.buildFuture();
+                                })
                                 .then(
                                     Commands.argument("pokemonData", StringArgumentType.greedyString())
                                         .executes(RecoveryCommands::pokeGive)
